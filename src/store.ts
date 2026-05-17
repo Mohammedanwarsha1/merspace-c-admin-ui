@@ -1,23 +1,30 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
+
+interface Tenant {
+  name: string;
+  address: string;
+  id: number;
+}
 export interface User {
-    id:number;
-    firstName:string;
-    lastName:string;
-    email:string;
-    role:string;
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  tenant?: Tenant;
 }
 
 interface AuthState {
-    user:null|User;
-    setUser:(user:User)=>void;
-    logout:()=>void;
+  user: null | User;
+  setUser: (user: User) => void;
+  logout: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
-    devtools((set) => ({
-        user: null,
-        setUser: (user) => set({ user }),
-        logout: () => set({ user: null }),
-    }))
+  devtools((set) => ({
+    user: null,
+    setUser: (user) => set({ user }),
+    logout: () => set({ user: null }),
+  })),
 );
