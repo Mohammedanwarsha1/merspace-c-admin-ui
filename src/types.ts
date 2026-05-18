@@ -15,3 +15,12 @@ export type Tenant = {
   name: string;
   address: string;
 };
+
+export type CreateUserdata = {
+  email: string;
+  firstName: string;
+  lastName: string;
+  password: string;
+  role: string;
+  tenantId: string;
+};

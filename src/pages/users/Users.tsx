@@ -1,13 +1,16 @@
 import { Breadcrumb, Button, Drawer, Form, Space, Table, theme } from "antd";
 import { PlusOutlined, RightOutlined } from "@ant-design/icons";
 import { Link, Navigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { getUsers } from "../../http/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createUser, getUsers } from "../../http/api";
 import { useAuthStore, type User } from "../../store";
 import { UsersFilter } from "./UsersFilter";
 import React from "react";
 import { UserForm } from "./forms/UserForm";
+import type { CreateUserdata } from "../../types";
 const Users = () => {
+  const [form] = Form.useForm();
+  const queryClient = useQueryClient();
   const {
     token: { colorBgLayout },
   } = theme.useToken();
@@ -54,6 +57,24 @@ const Users = () => {
   });
 
   const { user } = useAuthStore();
+
+  const { mutate: userMutate } = useMutation({
+    mutationKey: ["user"],
+    mutationFn: (data: CreateUserdata) =>
+      createUser(data).then((res) => res.data),
+    onSuccess: async () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      return;
+    },
+  });
+
+  const onHandleSubmit = async () => {
+    await form.validateFields();
+    await userMutate(form.getFieldsValue());
+    form.resetFields();
+    setDrawerOpen(false);
+  };
+
   if (user?.role !== "admin") {
     return <Navigate to="/" replace={true} />;
   }
@@ -89,16 +110,19 @@ const Users = () => {
           destroyOnHidden={true}
           open={drawerOpen}
           onClose={() => {
+            form.resetFields();
             setDrawerOpen(false);
           }}
           extra={
             <Space>
               <Button>Cancel</Button>
-              <Button type="primary">Submit</Button>
+              <Button type="primary" onClick={onHandleSubmit}>
+                Submit
+              </Button>
             </Space>
           }
         >
-          <Form layout="vertical">
+          <Form layout="vertical" form={form}>
             <UserForm />
           </Form>
         </Drawer>
