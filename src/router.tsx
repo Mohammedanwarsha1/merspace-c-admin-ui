@@ -5,6 +5,7 @@ import NonAuth from "./Layouts/NonAuth";
 import Dashboard from "./Layouts/Dashboard";
 import { Root } from "./Layouts/Root";
 import Users from "./pages/users/Users";
+import Tenants from "./pages/tenants/Tenants";
 
 export const router = createBrowserRouter([
   {
@@ -20,8 +21,12 @@ export const router = createBrowserRouter([
             element: <HomePage />,
           },
           {
-            path: '/users',
+            path: "/users",
             element: <Users />,
+          },
+          {
+            path: "/restaurants",
+            element: <Tenants />,
           },
         ],
       },
