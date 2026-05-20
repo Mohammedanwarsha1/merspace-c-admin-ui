@@ -126,8 +126,8 @@ export const UserForm = () => {
                     onChange={() => {}}
                     placeholder="Select role"
                   >
-                    {tenants?.map((tenant: Tenant) => (
-                      <Select.Option value={tenant.id}>
+                    {tenants?.data?.map((tenant: Tenant) => (
+                      <Select.Option key={tenant.id} value={tenant.id}>
                         {tenant.name}
                       </Select.Option>
                     ))}

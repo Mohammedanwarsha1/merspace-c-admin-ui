@@ -1,11 +1,14 @@
-import { Breadcrumb, Button, Drawer, Space, Table } from "antd";
+import { Breadcrumb, Button, Drawer, Space, Table, theme } from "antd";
 import { PlusOutlined, RightOutlined } from "@ant-design/icons";
+import { Form } from "antd";
 import { Link, Navigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { getTenants } from "../../http/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createTenant, getTenants } from "../../http/api";
 import { useAuthStore } from "../../store";
 import { TenantFilter } from "./TenantFilter";
 import React from "react";
+import type { CreateTenantData } from "../../types";
+import TenantForm from "./form/TenantForm";
 const Tenants = () => {
   const columns = [
     {
@@ -24,6 +27,11 @@ const Tenants = () => {
       key: "address",
     },
   ];
+  const {
+    token: { colorBgLayout },
+  } = theme.useToken();
+
+  const [form] = Form.useForm();
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const {
     data: users,
@@ -38,6 +46,23 @@ const Tenants = () => {
   });
 
   const { user } = useAuthStore();
+  const queryClient = useQueryClient();
+  const { mutate: tenantMutate } = useMutation({
+    mutationKey: ["tenant"],
+    mutationFn: async (data: CreateTenantData) =>
+      createTenant(data).then((res) => res.data),
+    onSuccess: async () => {
+      queryClient.invalidateQueries({ queryKey: ["tenants"] });
+      return;
+    },
+  });
+  const onHandleSubmit = async () => {
+    await form.validateFields();
+    await tenantMutate(form.getFieldsValue());
+    form.resetFields();
+    setDrawerOpen(false);
+  };
+
   if (user?.role !== "admin") {
     return <Navigate to="/" replace={true} />;
   }
@@ -64,10 +89,11 @@ const Tenants = () => {
             Add Restaurent
           </Button>
         </TenantFilter>
-        <Table columns={columns} dataSource={users} rowKey={"id"} />
+        <Table columns={columns} dataSource={users?.data} rowKey={"id"} />
 
         <Drawer
           title="Create restaurant"
+          styles={{ body: { backgroundColor: colorBgLayout } }}
           size={720}
           destroyOnHidden={true}
           open={drawerOpen}
@@ -77,12 +103,15 @@ const Tenants = () => {
           extra={
             <Space>
               <Button>Cancel</Button>
-              <Button type="primary">Submit</Button>
+              <Button type="primary" onClick={onHandleSubmit}>
+                Submit
+              </Button>
             </Space>
           }
         >
-          <p>some content...</p>
-          <p>some contents....</p>
+          <Form layout="vertical" form={form}>
+            <TenantForm />
+          </Form>
         </Drawer>
       </Space>
     </>
