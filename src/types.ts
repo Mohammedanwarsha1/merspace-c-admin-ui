@@ -8,6 +8,7 @@ export type User = {
   firstName: string;
   lastName: string;
   createdAt: string;
+  tenant: Tenant | null;
 };
 
 export type Tenant = {
