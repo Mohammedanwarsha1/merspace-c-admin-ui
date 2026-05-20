@@ -29,6 +29,7 @@ import React from "react";
 import { UserForm } from "./forms/UserForm";
 import type { CreateUserdata, FieldData } from "../../types";
 import { PER_PAGE } from "../../constants";
+import { debounce } from "lodash";
 const Users = () => {
   const [form] = Form.useForm();
   const [filterForm] = Form.useForm();
@@ -107,14 +108,22 @@ const Users = () => {
     form.resetFields();
     setDrawerOpen(false);
   };
+  const debounceQUpdate = React.useMemo(() => {
+    return debounce((value: string | undefined) => {
+      setQueryParams((prev) => ({ ...prev, q: value }));
+    }, 1000);
+  }, []);
   const onFilterChange = (changedFields: FieldData[]) => {
     const changedFilterFeilds = changedFields
       .map((item) => ({
         [item.name[0]]: item.value,
       }))
       .reduce((acc, item) => ({ ...acc, ...item }), {});
-    console.log(changedFilterFeilds);
-    setQueryParams((prev) => ({ ...prev, ...changedFilterFeilds }));
+    if ("q" in changedFilterFeilds) {
+      debounceQUpdate(changedFilterFeilds.q);
+    } else {
+      setQueryParams((prev) => ({ ...prev, ...changedFilterFeilds }));
+    }
   };
 
   if (user?.role !== "admin") {
