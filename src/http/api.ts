@@ -1,18 +1,20 @@
 import type { CreateTenantData, CreateUserdata, Credentials } from "../types";
 import { api } from "./client";
 
+export const AUTH_SERVICE = "/api/auth";
+
 //Auth service
 export const login = (credentials: Credentials) =>
-  api.post("/auth/login", credentials);
-
-export const self = () => api.get("/auth/self");
-export const logout = () => api.post("/auth/logout");
+  api.post(`${AUTH_SERVICE}/auth/login`, credentials);
+export const self = () => api.get(`${AUTH_SERVICE}/auth/self`);
+export const logout = () => api.post(`${AUTH_SERVICE}/auth/logout`);
 export const getUsers = (queryString: string) =>
-  api.get(`/users?${queryString}`);
+  api.get(`${AUTH_SERVICE}/users?${queryString}`);
 export const getTenants = (queryString: string) =>
-  api.get(`/tenants?${queryString}`);
-export const createUser = (user: CreateUserdata) => api.post("/users", user);
+  api.get(`${AUTH_SERVICE}/tenants?${queryString}`);
+export const createUser = (user: CreateUserdata) =>
+  api.post(`${AUTH_SERVICE}/users`, user);
 export const createTenant = (tenant: CreateTenantData) =>
-  api.post("/tenants", tenant);
+  api.post(`${AUTH_SERVICE}/tenants`, tenant);
 export const updateUser = (user: CreateUserdata, id: string) =>
-  api.patch(`/users/${id}`, user);
+  api.patch(`${AUTH_SERVICE}/users/${id}`, user);
