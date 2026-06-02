@@ -2,6 +2,7 @@ import type { CreateTenantData, CreateUserdata, Credentials } from "../types";
 import { api } from "./client";
 
 export const AUTH_SERVICE = "/api/auth";
+const CATALOG_SERVICE = "/api/catalog";
 
 //Auth service
 export const login = (credentials: Credentials) =>
@@ -18,3 +19,4 @@ export const createTenant = (tenant: CreateTenantData) =>
   api.post(`${AUTH_SERVICE}/tenants`, tenant);
 export const updateUser = (user: CreateUserdata, id: string) =>
   api.patch(`${AUTH_SERVICE}/users/${id}`, user);
+export const getCategories = () => api.get(`${CATALOG_SERVICE}/categories`);
