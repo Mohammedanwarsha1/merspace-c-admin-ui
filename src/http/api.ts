@@ -20,3 +20,5 @@ export const createTenant = (tenant: CreateTenantData) =>
 export const updateUser = (user: CreateUserdata, id: string) =>
   api.patch(`${AUTH_SERVICE}/users/${id}`, user);
 export const getCategories = () => api.get(`${CATALOG_SERVICE}/categories`);
+export const getProducts = (queryParam: string) =>
+  api.get(`${CATALOG_SERVICE}/product?${queryParam}`);
