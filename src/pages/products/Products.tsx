@@ -16,8 +16,9 @@ import React from "react";
 import { PER_PAGE } from "../../constants";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { getProducts } from "../../http/api";
-import type { Product } from "../../types";
+import type { FieldData, Product } from "../../types";
 import { format } from "date-fns";
+import { debounce } from "lodash";
 
 const columns = [
   {
@@ -73,8 +74,8 @@ const columns = [
 const Products = () => {
   const [filterForm] = Form.useForm();
   const [queryParams, setQueryParams] = React.useState({
-    perPage: PER_PAGE,
-    currentPage: 1,
+    limit: PER_PAGE,
+    page: 1,
   });
   const { data: products } = useQuery({
     queryKey: ["products", queryParams],
@@ -91,6 +92,26 @@ const Products = () => {
     },
     placeholderData: keepPreviousData,
   });
+  const debouncedUpdate = React.useMemo(
+    () =>
+      debounce((value: string | undefined) => {
+        setQueryParams((prev) => ({ ...prev, q: value, page: 1 }));
+      }, 500),
+    [],
+  );
+
+  const onFilterChange = (changedFeild: FieldData[]) => {
+    const changedFilterfeilds = changedFeild
+      .map((item) => ({
+        [item.name[0]]: item.value,
+      }))
+      .reduce((acc, item) => ({ ...acc, ...item }), {});
+    if ("q" in changedFilterfeilds) {
+      debouncedUpdate(changedFilterfeilds.q);
+    } else {
+      setQueryParams((prev) => ({ ...prev, ...changedFilterfeilds, page: 1 }));
+    }
+  };
   return (
     <>
       <Space orientation="vertical" size="large" style={{ width: "100%" }}>
@@ -103,7 +124,7 @@ const Products = () => {
             ]}
           />
         </Flex>
-        <Form form={filterForm} onFieldsChange={() => {}}>
+        <Form form={filterForm} onFieldsChange={onFilterChange}>
           <ProductFilter>
             <Button type="primary" icon={<PlusOutlined />} onClick={() => {}}>
               Add Product
@@ -130,14 +151,14 @@ const Products = () => {
           rowKey={"id"}
           pagination={{
             total: products?.total,
-            pageSize: queryParams.perPage,
-            current: queryParams.currentPage,
+            pageSize: queryParams.limit,
+            current: queryParams.page,
             onChange: (page) => {
               console.log(page);
               setQueryParams((prev) => {
                 return {
                   ...prev,
-                  currentPage: page,
+                  page: page,
                 };
               });
             },
