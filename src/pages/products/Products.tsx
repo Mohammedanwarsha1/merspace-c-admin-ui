@@ -8,6 +8,8 @@ import {
   Image,
   Typography,
   Tag,
+  Drawer,
+  theme,
 } from "antd";
 import { PlusOutlined, RightOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
@@ -20,7 +22,7 @@ import type { FieldData, Product } from "../../types";
 import { format } from "date-fns";
 import { debounce } from "lodash";
 import { useAuthStore } from "../../store";
-
+import ProductForm from "./forms/ProductForm";
 const columns = [
   {
     title: "Product Name",
@@ -74,7 +76,12 @@ const columns = [
 
 const Products = () => {
   const [filterForm] = Form.useForm();
+  const [form] = Form.useForm();
   const { user } = useAuthStore();
+  const {
+    token: { colorBgLayout },
+  } = theme.useToken();
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [queryParams, setQueryParams] = React.useState({
     limit: PER_PAGE,
     page: 1,
@@ -114,6 +121,9 @@ const Products = () => {
     } else {
       setQueryParams((prev) => ({ ...prev, ...changedFilterfeilds, page: 1 }));
     }
+  };
+  const onHandleSubmit = () => {
+    console.log("submitting...");
   };
   return (
     <>
@@ -171,6 +181,29 @@ const Products = () => {
             },
           }}
         />
+        <Drawer
+          title={"Add Product"}
+          size={720}
+          styles={{ body: { backgroundColor: colorBgLayout } }}
+          destroyOnHidden={true}
+          open={drawerOpen}
+          onClose={() => {
+            form.resetFields();
+            setDrawerOpen(false);
+          }}
+          extra={
+            <Space>
+              <Button>Cancel</Button>
+              <Button type="primary" onClick={onHandleSubmit}>
+                Submit
+              </Button>
+            </Space>
+          }
+        >
+          <Form layout="vertical" form={form}>
+            <ProductForm />
+          </Form>
+        </Drawer>
       </Space>
     </>
   );
