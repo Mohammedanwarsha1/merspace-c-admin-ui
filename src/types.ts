@@ -62,3 +62,5 @@ export type Product = {
   isPublish: boolean;
   createdAt: string;
 };
+export type ImageFeild = { file: File };
+export type CreateProductData = Product & { image: ImageFeild };
