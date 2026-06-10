@@ -22,7 +22,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { createProduct, getProducts } from "../../http/api";
+import { createProduct, getProducts, updateProduct } from "../../http/api";
 import type { FieldData, Product } from "../../types";
 import { format } from "date-fns";
 import { debounce } from "lodash";
@@ -83,11 +83,47 @@ const columns = [
 const Products = () => {
   const [filterForm] = Form.useForm();
   const [form] = Form.useForm();
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
+  const [selectedproduct, setCurrentproduct] = React.useState<Product | null>(
+    null,
+  );
+
+  React.useEffect(() => {
+    if (selectedproduct) {
+      console.log("selectedproduct", selectedproduct.priceConfiguration);
+
+      const priceConfiguration = Object.entries(
+        selectedproduct.priceConfiguration,
+      ).reduce((acc, [key, value]) => {
+        const stringifiedKey = JSON.stringify({
+          consfigurationKey: key,
+          priceType: value.priceType,
+        });
+
+        return {
+          ...acc,
+          [stringifiedKey]: value.availableOptions,
+        };
+      }, {});
+      const attributes = selectedproduct.attributes.reduce((acc, item) => {
+        return {
+          ...acc,
+          [item.name]: item.value,
+        };
+      }, {});
+
+      form.setFieldsValue({
+        ...selectedproduct,
+        priceConfiguration,
+        attributes,
+        categoryId: selectedproduct.category._id,
+      });
+    }
+  }, [selectedproduct, form]);
   const { user } = useAuthStore();
   const {
     token: { colorBgLayout },
   } = theme.useToken();
-  const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [queryParams, setQueryParams] = React.useState({
     limit: PER_PAGE,
     page: 1,
@@ -131,8 +167,14 @@ const Products = () => {
   const queryClient = useQueryClient();
   const { mutate: productMutate, isPending: isCreatedLoading } = useMutation({
     mutationKey: ["product"],
-    mutationFn: async (data: FormData) =>
-      createProduct(data).then((res) => res.data),
+    mutationFn: async (data: FormData) => {
+      if (selectedproduct) {
+        // edit mode
+        return updateProduct(data, selectedproduct._id).then((res) => res.data);
+      } else {
+        return createProduct(data).then((res) => res.data);
+      }
+    },
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       form.resetFields();
@@ -193,7 +235,7 @@ const Products = () => {
       },
     );
 
-    const categoryId = JSON.parse(form.getFieldValue("categoryId"))._id;
+    const categoryId = form.getFieldValue("categoryId");
 
     const postData = {
       ...form.getFieldsValue(),
@@ -226,7 +268,13 @@ const Products = () => {
         </Flex>
         <Form form={filterForm} onFieldsChange={onFilterChange}>
           <ProductFilter>
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => {}}>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setDrawerOpen(true);
+              }}
+            >
               Add Product
             </Button>
           </ProductFilter>
@@ -236,10 +284,16 @@ const Products = () => {
             ...columns,
             {
               title: "Actions",
-              render: () => {
+              render: (_, record: Product) => {
                 return (
                   <Space>
-                    <Button type="link" onClick={() => {}}>
+                    <Button
+                      type="link"
+                      onClick={() => {
+                        setDrawerOpen(true);
+                        setCurrentproduct(record);
+                      }}
+                    >
                       Edit
                     </Button>
                   </Space>
@@ -269,18 +323,27 @@ const Products = () => {
           }}
         />
         <Drawer
-          title={"Add Product"}
+          title={selectedproduct ? "Update Product" : "Add Product"}
           size={720}
           styles={{ body: { backgroundColor: colorBgLayout } }}
           destroyOnHidden={true}
           open={drawerOpen}
           onClose={() => {
+            setCurrentproduct(null);
             form.resetFields();
             setDrawerOpen(false);
           }}
           extra={
             <Space>
-              <Button>Cancel</Button>
+              <Button
+                onClick={() => {
+                  setCurrentproduct(null);
+                  form.resetFields();
+                  setDrawerOpen(false);
+                }}
+              >
+                Cancel
+              </Button>
               <Button
                 type="primary"
                 onClick={onHandleSubmit}
@@ -292,7 +355,7 @@ const Products = () => {
           }
         >
           <Form layout="vertical" form={form}>
-            <ProductForm />
+            <ProductForm form={form} />
           </Form>
         </Drawer>
       </Space>

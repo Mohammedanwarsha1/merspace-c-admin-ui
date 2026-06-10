@@ -9,14 +9,16 @@ import {
   Switch,
   Typography,
 } from "antd";
+import type { FormInstance } from "antd";
 import type { Category, Tenant } from "../../../types";
 import { useQuery } from "@tanstack/react-query";
 import { getCategories, getTenants } from "../../../http/api";
 import Pricing from "./Pricing";
 import Attributes from "./Attributes";
 import { useAuthStore } from "../../../store";
+import ProductImage from "./ProductImage";
 
-const ProductForm = () => {
+const ProductForm = ({ form }: { form: FormInstance }) => {
   const { user } = useAuthStore();
   const selectedCategory = Form.useWatch("categoryId");
   console.log(selectedCategory);
@@ -73,10 +75,7 @@ const ProductForm = () => {
                     placeholder="Select category"
                   >
                     {categories?.data.map((category: Category) => (
-                      <Select.Option
-                        value={JSON.stringify(category)}
-                        key={category._id}
-                      >
+                      <Select.Option value={category._id} key={category._id}>
                         {category.name}
                       </Select.Option>
                     ))}
@@ -106,7 +105,9 @@ const ProductForm = () => {
           </Card>
           <Card title="Product image" bordered={false}>
             <Row gutter={20}>
-              <Col span={12}></Col>
+              <Col span={12}>
+                <ProductImage initialImage={form.getFieldValue("image")} />
+              </Col>
             </Row>
           </Card>
           {user?.role !== "manager" && (
@@ -131,7 +132,10 @@ const ProductForm = () => {
                       placeholder="Select restaurant"
                     >
                       {restaurants?.data.data.map((tenant: Tenant) => (
-                        <Select.Option value={tenant.id} key={tenant.id}>
+                        <Select.Option
+                          value={String(tenant.id)}
+                          key={tenant.id}
+                        >
                           {tenant.name}
                         </Select.Option>
                       ))}

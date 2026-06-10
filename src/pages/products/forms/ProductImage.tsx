@@ -1,11 +1,18 @@
-import { Form, message, Space, Upload, type UploadProps, Typography } from "antd";
+import {
+  Form,
+  message,
+  Space,
+  Upload,
+  type UploadProps,
+  Typography,
+} from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { useState } from "react";
 
-const ProductImage = () => {
-    const [messageApi, contextHolder] = message.useMessage();
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-    const uploaderConfig: UploadProps = {
+const ProductImage = ({ initialImage }: { initialImage: string }) => {
+  const [messageApi, contextHolder] = message.useMessage();
+  const [imageUrl, setImageUrl] = useState<string | null>(initialImage);
+  const uploaderConfig: UploadProps = {
     name: "file",
     multiple: false,
     showUploadList: false,
@@ -26,32 +33,28 @@ const ProductImage = () => {
   };
   return (
     <Form.Item
-                  label=""
-                  name="image"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please upload a product image",
-                    },
-                  ]}
-                >
-                  {contextHolder}
-                  <Upload listType="picture-card" {...uploaderConfig}>
-                    {imageUrl ? (
-                      <img
-                        src={imageUrl}
-                        alt="avatar"
-                        style={{ width: "100%" }}
-                      />
-                    ) : (
-                      <Space direction="vertical">
-                        <PlusOutlined />
-                        <Typography.Text>Upload</Typography.Text>
-                      </Space>
-                    )}
-                  </Upload>
-                </Form.Item>
-  )
-}
+      label=""
+      name="image"
+      rules={[
+        {
+          required: true,
+          message: "Please upload a product image",
+        },
+      ]}
+    >
+      {contextHolder}
+      <Upload listType="picture-card" {...uploaderConfig}>
+        {imageUrl ? (
+          <img src={imageUrl} alt="avatar" style={{ width: "100%" }} />
+        ) : (
+          <Space direction="vertical">
+            <PlusOutlined />
+            <Typography.Text>Upload</Typography.Text>
+          </Space>
+        )}
+      </Upload>
+    </Form.Item>
+  );
+};
 
-export default ProductImage
+export default ProductImage;
